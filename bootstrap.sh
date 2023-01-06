@@ -32,7 +32,7 @@ export ICLOUD_DRIVE=$(test -d ~/Library/Mobile\ Documents/com~apple~CloudDocs &&
 # Disable macOS update notifications.
 test -d /Library/Bundles/OSXNotification.bundle && mv "$_" "$_.ignored"
 
-# Copy keyboard layout
+# Copy keyboard layout.
 test -f ../Amalgamation.keylayout/Amalgamation.keylayout \
     && sudo cp "$_" "/Library/Keyboard Layouts/" \
     && echo "Copied keyboard layout"
@@ -533,14 +533,19 @@ secrets
 # Restore dotfiles.
 (
     test -d ../dotfiles && pushd "$_" || exit
-    find . -type d -depth 1 -not -name ".*" -and -not -name "*.nostow" -print0 \
-        | xargs -0 basename | xargs stow
+    find . -type d -depth 1 \
+        -not \( -name ".*" -or -name "*.nostow" -or -name "windows" \) \
+        -print0 | xargs -0 basename | xargs stow
 )
 
-# Install vim plugins.
+# Install neovim plugins.
 test ! -e ~/.vim/swap && mkdir "$_"
 test ! -e ~/.vim/undo && mkdir "$_"
-vim -c 'PlugInstall' +qa
+git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+    ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+git clone --depth 1 https://github.com/rktjmp/hotpot.nvim \
+    ~/.local/share/nvim/site/pack/packer/start/hotpot.nvim
+nvim --headless -c 'autocmd User PackerComplete qa' +PackerSync
 
 # Install tmux plugins.
 test -x ~/.tmux/plugins/tpm/bin/install_plugins && "$_"
